@@ -4,6 +4,8 @@ import (
 //    "net/http"
 
     "openvpn-web-admin/router/user"
+    "openvpn-web-admin/router/group"
+    "openvpn-web-admin/router/vpn"
     "openvpn-web-admin/middlewares/auth"
 //    "openvpn-web-admin/utils/error"
 )
@@ -14,6 +16,8 @@ func Init(r *gin.RouterGroup) {
     router = r
     router.GET("/status", auth.CheckSignIn, status)
     user.Init(router.Group("/user"))
+    group.Init(router.Group("/group"))
+    vpn.Init(router.Group("/vpn"))
 }
 
 func status(c *gin.Context) {

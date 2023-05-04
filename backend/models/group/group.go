@@ -16,6 +16,15 @@ type Group struct {
     Members []string
 }
 
+func (group *Group) ToMap() map[string]any {
+    var groupmap map[string]any
+    groupjson, _ := json.Marshal(group)
+    json.Unmarshal(groupjson, &groupmap)
+    members, _ := json.Marshal(group.Members)
+    groupmap["Members"] = string(members)
+    return groupmap
+}
+
 func (group *Group) AddMembers(members ...string) {
     var appendmembers []string
     for _, member := range members {
@@ -132,25 +141,22 @@ func UpdateGroup(groupname string, group *Group, fields ...string) error {
         return errors.New("Group not exist")
     }
 
-    for index, field := range fields {
-        if field == "Groupname" {
-            fields = append(fields[:index], fields[index+1:]...)
-            break
-        }
-    }
-
-    var groupmap map[string]any
-    groupjson, _ := json.Marshal(group)
-    json.Unmarshal(groupjson, &groupmap)
-    members, _ := json.Marshal(group.Members)
-    groupmap["Members"] = string(members)
+    groupmap := group.ToMap()
 
     data := []any{}
-    for _, field := range fields {
-        data = append(data, groupmap[field])
+    for index := 0; index < len(fields); index++ {
+        if fields[index] == "Groupname" {
+            fields = append(fields[:index], fields[index+1:]...)
+            index--
+        } else {
+            data = append(data, groupmap[fields[index]])
+        }
     }
     data = append(data, groupname)
 
+    if len(fields) <= 0 {
+        return nil
+    }
     _, err = database.Exec(fmt.Sprintf("UPDATE %s SET %s where groupname=?", tablename, strings.ToLower(strings.Join(fields[:], "=?, ")) + "=?"), data...)
     return err
 }

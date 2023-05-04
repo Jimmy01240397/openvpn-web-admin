@@ -20,6 +20,7 @@ func init() {
     lock = new(sync.RWMutex)
     lock.Lock()
     defer lock.Unlock()
+    os.Chdir("/etc/openvpn")
     var err error
     if _, err := os.Stat(config.DBname); errors.Is(err, os.ErrNotExist) {
         os.Create(config.DBname)

@@ -24,6 +24,14 @@ type User struct {
     Enddate *time.Time
 }
 
+func (user *User) ToMap() map[string]any {
+    var usermap map[string]any
+    userjson, _ := json.Marshal(user)
+    json.Unmarshal(userjson, &usermap)
+    usermap["Password"] = user.Password.String()
+    return usermap
+}
+
 func (user *User) GetGroups() []*group.Group {
     var resultgroups []*group.Group
     groups, err := group.GetGroups()
@@ -184,24 +192,22 @@ func UpdateUser(username string, user *User, fields ...string) error {
         return errors.New("User not exist")
     }
 
-    for index, field := range fields {
-        if field == "Username" {
-            fields = append(fields[:index], fields[index+1:]...)
-            break
-        }
-    }
-
-    var usermap map[string]any
-    userjson, _ := json.Marshal(user)
-    json.Unmarshal(userjson, &usermap)
-    usermap["Password"] = user.Password.String()
+    usermap := user.ToMap()
 
     data := []any{}
-    for _, field := range fields {
-        data = append(data, usermap[field])
+    for index := 0; index < len(fields); index++ {
+        if fields[index] == "Username" {
+            fields = append(fields[:index], fields[index+1:]...)
+            index--
+        } else {
+            data = append(data, usermap[fields[index]])
+        }
     }
     data = append(data, username)
 
+    if len(fields) <= 0 {
+        return nil
+    }
     _, err = database.Exec(fmt.Sprintf("UPDATE %s SET %s where username=?", tablename, strings.ToLower(strings.Join(fields[:], "=?, ")) + "=?"), data...)
     return err
 }

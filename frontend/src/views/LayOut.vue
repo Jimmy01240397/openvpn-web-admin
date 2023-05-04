@@ -39,42 +39,58 @@
 
 <script>
 import userService from '@/services/user';
+import groupService from '@/services/group';
 export default {
   name: 'LayOut',
   data: () => ({
-    pages: [
-      {
-          title: 'Dashboard',
-          icon: 'mdi-view-dashboard',
-          path: '/layout/dashboard',
-      },
-      {
-          title: 'Log',
-          icon: 'mdi-book',
-          path: '/layout/log',
-      },
-      {
-          title: 'USER',
-          icon: 'mdi-account-supervisor',
-          path: '/layout/user',
-      },
-      {
-          title: 'GROUP',
-          icon: 'mdi-account-group-outline',
-          path: '/layout/GROUP',
-      },
-      {
-          title: 'VPNs',
-          icon: 'mdi-open-source-initiative',
-          path: '/layout/vpns',
-      },
-    ],
+    userinfo: null,
+    admingroup: null,
     selectedPage: null,
   }),
+  computed: {
+    pages: function() {
+      if(this.admingroup != null && this.userinfo != null && this.admingroup.Members.includes(this.userinfo.Username)) {
+        return [
+          {
+              title: 'Dashboard',
+              icon: 'mdi-view-dashboard',
+              path: '/layout/dashboard',
+          },
+          {
+              title: 'Log',
+              icon: 'mdi-book',
+              path: '/layout/log',
+          },
+          {
+              title: 'USER',
+              icon: 'mdi-account-supervisor',
+              path: '/layout/user',
+          },
+          {
+              title: 'GROUP',
+              icon: 'mdi-account-group-outline',
+              path: '/layout/GROUP',
+          },
+          {
+              title: 'VPNs',
+              icon: 'mdi-open-source-initiative',
+              path: '/layout/vpns',
+          },
+        ]
+      }
+      else {
+        return [
+          {
+              title: 'Dashboard',
+              icon: 'mdi-view-dashboard',
+              path: '/layout/dashboard',
+          },
+        ]
+      }
+    }
+  },
   methods: {
     selectPage(page) {
-      console.log(this.selectedPage);
-      console.log(page);
       this.selectedPage = [ page ];
       this.$router.push(page.path);
     },
@@ -83,8 +99,8 @@ export default {
     }
   },
   async beforeMount() {
-    var userinfo = await userService.getuser();
-    console.log(userinfo);
+    this.userinfo = (await userService.getuser()).data;
+    this.admingroup = (await groupService.getgroup("Administrators")).data;
     this.selectPage(this.pages[0]);
   }
 }

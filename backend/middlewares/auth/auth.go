@@ -6,6 +6,7 @@ import (
     "github.com/gin-contrib/sessions"
 
     "openvpn-web-admin/utils/errutil"
+    "openvpn-web-admin/models/user"
 )
 
 func CheckSignIn(c *gin.Context) {
@@ -14,12 +15,24 @@ func CheckSignIn(c *gin.Context) {
     }
 }
 
+func CheckIsAdmin(c *gin.Context) {
+    if isAdmin, exist := c.Get("isAdmin"); !exist || !isAdmin.(bool) {
+        errutil.AbortAndStatus(c, 401)
+    }
+}
+
 func AddMeta(c *gin.Context) {
     session := sessions.Default(c)
-    user := session.Get("user")
-    if user != nil {
-        c.Set("isSignIn", true)
-    } else {
+    username := session.Get("user")
+    if username == nil {
         c.Set("isSignIn", false)
+    } else {
+        userdata, _ := user.GetUser(username.(string))
+        if userdata == nil {
+            c.Set("isSignIn", false)
+        } else {
+            c.Set("isSignIn", true)
+            c.Set("isAdmin", userdata.IsAdmin())
+        }
     }
 }

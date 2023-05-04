@@ -10,7 +10,7 @@ import (
     "openvpn-web-admin/utils/config"
     "openvpn-web-admin/utils/database"
     "openvpn-web-admin/utils/errutil"
-    _ "openvpn-web-admin/models/user"
+//    _ "openvpn-web-admin/models/user"
     "openvpn-web-admin/middlewares/auth"
 )
 
